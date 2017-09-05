@@ -8,11 +8,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 
 import manuscript.system.security.writter.GsonWritter;
-import manuscript.system.seucurity.reply.ReplyObject;
+import manuscript.system.seucurity.reply.BaseReply;
+import manuscript.system.seucurity.reply.Message;
 
 /**
  * 
@@ -26,15 +28,18 @@ public class CustomSimpleUrlAuthenticationFailureHandler implements Authenticati
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException exception) throws IOException, ServletException {
-		LOGGER.debug("Exception occured during authentication!", exception);
 
-		response.setContentType("application/json");
-		response.setStatus(400);
+		BaseReply reply = new BaseReply();
+		Message message = new Message();
 
-		ReplyObject reply = new ReplyObject();
+		LOGGER.debug("Authentication failed. Exception: {}", exception.getMessage());
 
+		response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+
+		message.setText("Wrong username or password.");
+		reply.getMessages().add(message);
 		reply.setSuccess(false);
-		reply.setErrorMessage("Wrong username or password. Please try again.");
 
 		response.setContentLength(GsonWritter.length(reply));
 		response.getOutputStream().write(GsonWritter.write(reply).getBytes());
